@@ -12,6 +12,11 @@
         onlineImage,
         searchImage;
 
+    /**
+     * 图片是否设置为响应式
+     */
+    var imageResponse = false;
+
     window.onload = function () {
         initTabs();
         initAlign();
@@ -104,6 +109,7 @@
             }
 
             if(list) {
+                console.log(list);
                 editor.execCommand('insertimage', list);
                 remote && editor.fireEvent("catchRemoteImage");
             }
@@ -199,6 +205,12 @@
                 locker.setAttribute('data-proportion', proportion);
             });
 
+            // 勾选后，图片将设置为width:100%;height: auto;
+            domUtils.on($G("responseOption"), "change", function(){
+                console.log(this.checked);
+                imageResponse = this.checked;
+            });
+
             function updatePreview(){
                 _this.setPreview();
             }
@@ -227,12 +239,19 @@
             /* 防止onchange事件循环调用 */
             if (src !== $G("url").value) $G("url").value = src;
             if(src) {
+
                 /* 设置表单内容 */
                 $G("width").value = img.width || '';
                 $G("height").value = img.height || '';
                 $G("border").value = img.getAttribute("border") || '0';
                 $G("vhSpace").value = img.getAttribute("vspace") || '0';
                 $G("title").value = img.title || img.alt || '';
+
+                if(img.getAttribute("width") === "100%" && img.getAttribute("height") === "auto"){
+                    imageResponse = true;
+                    $G("responseOption").checked = true;
+                }
+
                 setAlign(align);
                 this.setPreview();
                 this.updateLocker();
@@ -259,6 +278,11 @@
             width = width+(border*2) > preview.offsetWidth ? width:(preview.offsetWidth - (border*2));
             height = (!ow || !oh) ? '':width*oh/ow;
 
+            if(imageResponse){
+                width = "100%";
+                height = "auto";
+            }
+
             if(url) {
                 preview.innerHTML = '<img src="' + url + '" width="' + width + '" height="' + height + '" border="' + border + 'px solid #000" title="' + title + '" />';
             }
@@ -266,6 +290,11 @@
         getInsertList: function () {
             var data = this.getData();
             if(data['url']) {
+
+                if(imageResponse){
+                    data["width"] = "100%";
+                    data["height"] = "auto";
+                }
                 return [{
                     src: data['url'],
                     _src: data['url'],
