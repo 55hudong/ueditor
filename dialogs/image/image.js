@@ -241,16 +241,19 @@
             if(src) {
 
                 /* 设置表单内容 */
-                $G("width").value = img.width || '';
-                $G("height").value = img.height || '';
+                if(this.isResponse(img)){
+                    imageResponse = true;
+                    $G("responseOption").checked = true;
+                    $G("width").value = img.naturalWidth;
+                    $G("height").value = img.naturalHeight;                    
+                }else{
+                    $G("width").value = img.width || '';
+                    $G("height").value = img.height || '';
+                }
                 $G("border").value = img.getAttribute("border") || '0';
                 $G("vhSpace").value = img.getAttribute("vspace") || '0';
                 $G("title").value = img.title || img.alt || '';
 
-                if(img.getAttribute("width") === "100%" && img.getAttribute("height") === "auto"){
-                    imageResponse = true;
-                    $G("responseOption").checked = true;
-                }
 
                 setAlign(align);
                 this.setPreview();
@@ -263,6 +266,15 @@
                 data[k] = this.dom[k].value;
             }
             return data;
+        },
+        // 判断图片是否是响应式的宽高
+        isResponse: function(img){
+
+            if(img.getAttribute && img.getAttribute("width") === "100%" && img.getAttribute("height") === "auto"){
+                return true;
+            }else{
+                return false;
+            }
         },
         setPreview: function(){
             var url = $G('url').value,
@@ -294,6 +306,9 @@
                 if(imageResponse){
                     data["width"] = "100%";
                     data["height"] = "auto";
+                }else{
+                    data["width"] = data["width"] + "px";
+                    data["height"] = data["height"] + "px";
                 }
                 return [{
                     src: data['url'],
@@ -304,7 +319,7 @@
                     floatStyle: data['align'] || '',
                     vspace: data['vhSpace'] || '',
                     alt: data['title'] || '',
-                    style: "width:" + data['width'] + "px;height:" + data['height'] + "px;"
+                    style: "width:" + data["width"] + ";height:" + data["height"] + ";"
                 }];
             } else {
                 return [];
